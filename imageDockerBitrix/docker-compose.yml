@@ -1,0 +1,41 @@
+version: '3'
+services:
+    web:
+        image: nginx:alpine
+        volumes:
+            - ./backend/www:/usr/share/nginx/html
+            - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+        ports:
+            - "80:80"
+            - "443:443"
+        depends_on:
+            - php
+            - mariadb
+        environment:
+            - UID=${PHPUID}
+            - GID=${PHPGID}
+    php:
+        image: nanoninja/php-fpm:${PHP_VERSION}
+        volumes:
+            - ./backend/www:/usr/share/nginx/html
+            - ./php-fpm/php.ini:/usr/local/etc/php/php.ini
+        environment:
+            - UID=${PHPUID}
+            - GID=${PHPGID}
+    mariadb:
+        image: mariadb:10.3
+        restart: always
+        volumes:
+            - ./mariadb:/var/lib/mysql
+        environment:
+            MYSQL_ROOT_PASSWORD: qwerty
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin
+        links: 
+            - mariadb:db
+        ports:
+            - 8765:80
+        environment:
+            MYSQL_ROOT_PASSWORD: qwerty
+        depends_on:
+            - mariadb
